@@ -32,14 +32,14 @@ class Event
     /**
      * @var \DateTime
      * @Assert\DateTime()
-     * @ORM\Column(name="start_time", type="datetime")
+     * @ORM\Column(name="start_time", type="date")
      */
     private $startTime;
 
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="end_time", type="datetime")
+     * @ORM\Column(name="end_time", type="date")
      */
     private $endTime;
 

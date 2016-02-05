@@ -1,0 +1,15 @@
+put_evaluation:
+    path:     /evaluations
+    defaults: { _controller: ApiBundle:Api:putEvaluation }
+
+put_manager:
+    path:     /organizations/managers
+    defaults: { _controller: ApiBundle:Api:putManager }
+
+delete_manager:
+    path:     /organizations/managers/{manid}
+    defaults: { _controller: ApiBundle:Api:deleteManager }
+
+get_invoices:
+    path:     /organizations/invoices
+    defaults: { _controller: ApiBundle:Api:getInvoices }
