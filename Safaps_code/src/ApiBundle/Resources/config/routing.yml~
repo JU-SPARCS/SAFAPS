@@ -14,6 +14,6 @@ get_invoices:
     path:     /organizations/invoices
     defaults: { _controller: ApiBundle:Api:getInvoices }
 
-put_invoices:
+create_invoices:
     path:     /organizations/{orgaid}/invoices
     defaults: { _controller: ApiBundle:Api:putInvoices }

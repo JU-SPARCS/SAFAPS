@@ -1,0 +1,108 @@
+#!/bin/bash
+
+
+echo "Test if ResponseURL has the same value as sent in the request. Is 200 HTTP status?" 
+
+header=$(curl -i -X POST -H "Authorization: Basic NEtKcVJ4VUtRUXd1S1BiTQ==" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d '{"ResponseURL": "http://toto.fr", "Events": [{ "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "EndTime": "2016-02-06 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "VL", "Equipment": "O", "Weather": "HD"}, { "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "EndTime": "2016-02-06 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "H", "Equipment": "O", "Weather": "HD"}]}' | head -n 1)
+
+if [[ $header =~ .*200.* ]]
+then
+  echo "Test OK"
+else
+  echo "Test Fail"
+fi
+
+
+echo "Test if URL is not properly set. Is 400 status? with bad URL" 
+
+header=$(curl -i -X POST -H "Authorization: Basic NEtKcVJ4VUtRUXd1S1BiTQ==" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d '{"ResponseURL": "test", "Events": [{ "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "EndTime": "2016-02-06 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "VL", "Equipment": "O", "Weather": "HD"}, { "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "EndTime": "2016-02-06 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "H", "Equipment": "O", "Weather": "HD"}]}' | head -n 1)
+
+if [[ $header =~ .*400.* ]]
+then
+  echo "Test OK"
+else
+  echo "Test Fail"
+fi
+
+
+
+echo "Test if several event attributes are missing. Is 400 HTTP status? with missing attributes" 
+
+header=$(curl -i -X POST -H "Authorization: Basic NEtKcVJ4VUtRUXd1S1BiTQ==" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d '{"ResponseURL": "http://toto.fr", "Events": [{ "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "VL", "Equipment": "O", "Weather": "HD"}, { "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "EndTime": "2016-02-06 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "H", "Equipment": "O", "Weather": "HD"}]}' | head -n 1)
+
+if [[ $header =~ .*400.* ]]
+then
+  echo "Test OK"
+else
+  echo "Test Fail"
+fi
+
+echo "Test if API key is not valid or authorization is not defined. Is 401 HTTP status? with wrong API key" 
+
+header=$(curl -i -X POST -H "Authorization: Basic NEtKcVJ4VUtRUXd1S1BiT==" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d '{"ResponseURL": "http://toto.fr", "Events": [{ "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "EndTime": "2016-02-06 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "VL", "Equipment": "O", "Weather": "HD"}, { "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "EndTime": "2016-02-06 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "H", "Equipment": "O", "Weather": "HD"}]}' | head -n 1)
+
+if [[ $header =~ .*401.* ]]
+then
+  echo "Test OK"
+else
+  echo "Test Fail"
+fi
+
+echo "Test if request is not in Json format. Is 415 HTTP status? with xml content type" 
+
+header=$(curl -i -X POST -H "Authorization: Basic NEtKcVJ4VUtRUXd1S1BiTQ==" -H "Content-Type: application/xml" http://193.10.30.123/evaluations -d '{"ResponseURL": "http://toto.fr", "Events": [{ "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "EndTime": "2016-02-06 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "VL", "Equipment": "O", "Weather": "HD"}, { "TimeZone": "Europe/Paris","StartTime": "2016-02-05 17:18:30", "EndTime": "2016-02-06 17:18:30", "ASMEnvironment": "T", "ControlTechnology": "R", "ControllerStatus": "MCS", "Traffic": "H", "Equipment": "O", "Weather": "HD"}]}' | head -n 1)
+
+if [[ $header =~ .*415.* ]]
+then
+  echo "Test OK"
+else
+  echo "Test Fail"
+fi
+
+
+echo "Test if route /organizations/managers exist."
+
+header=$(curl -Is http://193.10.30.123/organizations/managers | head -n 1)
+
+if [[ $header =~ .*200.* ]]
+then
+  echo "Test OK"
+else
+  echo "Test Fail"
+fi
+
+echo "Test if route /organizations/managers/{manid} exist.With manid = 1"
+
+header=$(curl -Is http://193.10.30.123/organizations/managers/1 | head -n 1)
+
+if [[ $header =~ .*200.* ]]
+then
+  echo "Test OK"
+else
+  echo "Test Fail"
+fi
+
+echo "Test if route /organizations/invoices exist."
+
+header=$(curl -Is http://193.10.30.123/organizations/invoices | head -n 1)
+
+if [[ $header =~ .*200.* ]]
+then
+  echo "Test OK"
+else
+  echo "Test Fail"
+fi
+
+echo "Test if route /organizations/{orgaid}/invoices exist.With orgaid = 1"
+
+header=$(curl -Is http://193.10.30.123/organizations/1/invoices | head -n 1)
+
+if [[ $header =~ .*200.* ]]
+then
+  echo "Test OK"
+else
+  echo "Test Fail"
+fi
+
+
+
