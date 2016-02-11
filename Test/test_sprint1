@@ -62,7 +62,7 @@ fi
 
 echo "Test if route /organizations/managers exist."
 
-header=$(curl -Is http://193.10.30.123/organizations/managers | head -n 1)
+header=$(curl -is -X POST http://193.10.30.123/organizations/managers | head -n 1)
 
 if [[ $header =~ .*200.* ]]
 then
@@ -73,7 +73,7 @@ fi
 
 echo "Test if route /organizations/managers/{manid} exist.With manid = 1"
 
-header=$(curl -Is http://193.10.30.123/organizations/managers/1 | head -n 1)
+header=$(curl -is -X DELETE http://193.10.30.123/organizations/managers/1 | head -n 1)
 
 if [[ $header =~ .*200.* ]]
 then
@@ -84,7 +84,7 @@ fi
 
 echo "Test if route /organizations/invoices exist."
 
-header=$(curl -Is http://193.10.30.123/organizations/invoices | head -n 1)
+header=$(curl -is -X GET http://193.10.30.123/organizations/invoices | head -n 1)
 
 if [[ $header =~ .*200.* ]]
 then
@@ -95,7 +95,7 @@ fi
 
 echo "Test if route /organizations/{orgaid}/invoices exist.With orgaid = 1"
 
-header=$(curl -Is http://193.10.30.123/organizations/1/invoices | head -n 1)
+header=$(curl -is -X POST http://193.10.30.123/organizations/1/invoices | head -n 1)
 
 if [[ $header =~ .*200.* ]]
 then

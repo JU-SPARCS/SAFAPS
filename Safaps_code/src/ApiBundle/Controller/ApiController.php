@@ -267,24 +267,44 @@ class ApiController extends Controller
         return $d && $d->format($format) == $date;
     }
 
-    public function putManagerAction()
+    public function putManagerAction(Request $request)
     {
-        return new Response('Api is loaded. Route : /organizations/managers');    
+      if($request->getMethod() == 'POST')
+      {
+        return new JsonResponse(array('ManagerId' => 12, 'Name' => 'Rob', 'ApiKey' => '2154dzdqdza=='), 200);
+      }   
+      
+      return new Response('Api is loaded. Route : /organizations/managers');    
     }
 
-    public function deleteManagerAction($manid)
+    public function deleteManagerAction(Request $request, $manid)
     {
-        return new Response('Api is loaded. Route: /organizations/managers/{manid}');
+      if($request->getMethod() == 'DELETE')
+      {
+        return new JsonResponse(array(), 204);
+      }
+      
+      return new Response('Api is loaded. Route: /organizations/managers/{manid}');
     }
 
-    public function getInvoicesAction()
+    public function getInvoicesAction(Request $request)
     {
-        return new Response('Api is loaded. Route: /organizations/invoices');
+      if($request->getMethod() == 'GET')
+      {
+        return new JsonResponse(array('OrganizationName' => 'ATCO', 'Invoice' => array("Date" => "2016-02-01 12:12:12", "PeriodStart" => "2016-02-01 12:12:12", "PeriodEnd" => "2016-02-01 12:12:12", "Amount" => 125, "Currency" => "test")), 200);
+      } 
+     
+      return new Response('Api is loaded. Route: /organizations/invoices');
     }
 
-    public function putInvoicesAction($orgaid)
+    public function putInvoicesAction(Request $request, $orgaid)
     {
-        return new Response('Api is loaded. Route : /organizations/{orgaid}/invoices');    
+      if($request->getMethod() == 'POST')
+      {
+        return new JsonResponse(array('OrganizationName' => 'ATCO', 'Invoice' => array("Date" => "2016-02-01 12:12:12", "PeriodStart" => "2016-02-01 12:12:12", "PeriodEnd" => "2016-02-01 12:12:12", "Amount" => 125, "Currency" => "test")), 200);
+      } 
+      
+      return new Response('Api is loaded. Route : /organizations/{orgaid}/invoices');    
     }
 
 }
