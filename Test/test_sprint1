@@ -75,7 +75,7 @@ echo "Test if route /organizations/managers/{manid} exist.With manid = 1"
 
 header=$(curl -is -X DELETE http://193.10.30.123/organizations/managers/1 | head -n 1)
 
-if [[ $header =~ .*200.* ]]
+if [[ $header =~ .*204.* ]]
 then
   echo "Test OK"
 else
