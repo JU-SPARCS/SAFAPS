@@ -1,0 +1,13 @@
+{
+  "ResponseURL": "http://toto.fr",
+  "Events": [
+    {
+      "ASMEnvironment": "T",
+      "ControlTechnology": "R",
+      "ControllerStatus": "MCS",
+      "Traffic": "VL",
+      "Equipment": "O",
+      "Weather": "HD"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "ResponseURL": "BadURL",
+  "Events": [
+    {
+      "TimeZone": "Europe/Paris",
+      "StartTime": "2016-02-05 17:18:30",
+      "EndTime": "2016-02-06 17:18:30",
+      "ASMEnvironment": "T",
+      "ControlTechnology": "R",
+      "ControllerStatus": "MCS",
+      "Traffic": "VL",
+      "Equipment": "O",
+      "Weather": "HD"
+    },
+    {
+      "TimeZone": "Europe/Paris",
+      "StartTime": "2016-02-05 17:18:30",
+      "EndTime": "2016-02-06 17:18:30",
+      "ASMEnvironment": "T",
+      "ControlTechnology": "R",
+      "ControllerStatus": "MCS",
+      "Traffic": "H",
+      "Equipment": "O",
+      "Weather": "HD"
+    }
+  ]
+}

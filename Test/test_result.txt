@@ -1,0 +1,122 @@
+------ Testing http://193.10.30.123/evaluations POST ------
+	Testing Simple Evaluation
+		Test status code = 200... OK
+		Test JSON field '.RequestId'... OK
+		Test JSON value for field '.ResponseURL'... OK
+
+	Testing Evaluation without ReponseURL
+		Test status code = 400... KO (actual status code=500)
+		Test JSON value for field '.Error'... KO (actual value='')
+
+	Testing Evaluation with bad ReponseURL
+		Test status code = 400... OK
+		Test JSON value for field '.Error'... OK
+
+	Testing Evaluation with missing field in Event
+		Test status code = 400... OK
+		Test JSON value for field '.Error'... KO (actual value='"One or several event attributes are missing in the event [0]:  "[ASMEnvironment]", "[ControlTechnology]", "[ControllerStatus]", "[Traffic]", "[Equipment]", "[Weather]", "')
+
+	Testing Evaluation without authentication key
+		Test status code = 401... OK
+		Test JSON value for field '.Error'... OK
+
+	Testing Evaluation with bad authentication key
+		Test status code = 401... OK
+		Test JSON value for field '.Error'... OK
+
+	Testing Evaluation with bad body
+		Test status code = 415... OK
+		Test JSON value for field '.Error'... OK
+
+	Testing Evaluation with bad method
+		Test status code = 405... KO (actual status code=415)
+		Test JSON value for field '.Error'... KO (actual value='"The data is not in JSON format"')
+
+------ Testing http://193.10.30.123/organizations/managers POST -----
+	Testing Simple Add Manager
+		Test status code = 200... OK
+		Test JSON field '.ManagerId'... OK
+		Test JSON value for field '.Name'... KO (actual value='"Rob"')
+		Test JSON field '.ApiKey'... OK
+
+	Testing Add Manager without Name
+		Test status code = 400... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='null')
+
+	Testing Add Manager with empty Name
+		Test status code = 400... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='null')
+
+	Testing Add Manager without authentication key
+		Test status code = 401... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='null')
+
+	Testing Add Manager with bad authentication key
+		Test status code = 401... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='null')
+
+	Testing Add Manager with bad body
+		Test status code = 415... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='null')
+
+	Testing Add Manager with bad method
+		Test status code = 405... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='')
+
+------ Testing http://193.10.30.123/organizations/managers/[id] DELETE -----
+	Testing Simple Remove Manager
+		Test status code = 204... OK
+
+	Testing Remove Manager with bad manager ID
+		Test status code = 400... KO (actual status code=204)
+		Test JSON value for field '.Error'... KO (actual value='')
+
+	Testing Remove Manager without authentication key
+		Test status code = 401... KO (actual status code=204)
+		Test JSON value for field '.Error'... KO (actual value='')
+
+	Testing Remove Manager with bad authentication key
+		Test status code = 401... KO (actual status code=204)
+		Test JSON value for field '.Error'... KO (actual value='')
+
+	Testing Remove Manager with bad method
+		Test status code = 405... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='')
+
+------ Testing http://193.10.30.123/organizations/[id]/invoices POST -----
+	Testing Simple Add Invoice
+		Test status code = 200... OK
+		Test JSON field '.OrganizationName'... OK
+		Test JSON field '.Invoice.Date'... OK
+		Test JSON field '.Invoice.PeriodStart'... OK
+		Test JSON field '.Invoice.PeriodEnd'... OK
+		Test JSON field '.Invoice.Amount'... OK
+		Test JSON field '.Invoice.Currency'... OK
+
+	Testing Simple Add Invoice with bad organization ID
+		Test status code = 400... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='null')
+
+------ Testing http://193.10.30.123/organizations/invoices GET -----
+	Testing Simple Get Invoices
+		Test status code = 200... OK
+		Test JSON field '.OrganizationName'... OK
+		Test JSON field '.Invoices[].Date'... KO
+		Test JSON field '.Invoices[].PeriodStart'... KO
+		Test JSON field '.Invoices[].PeriodEnd'... KO
+		Test JSON field '.Invoices[].Amount'... KO
+		Test JSON field '.Invoices[].Currency'... KO
+
+	Testing Get Invoices without authentication key
+		Test status code = 401... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='null')
+
+	Testing Get Invoices with bad authentication key
+		Test status code = 401... KO (actual status code=200)
+		Test JSON value for field '.Error'... KO (actual value='null')
+
+
+TEST RESULT:
+	TEST: 62
+	PASSED: 25
+	FAILED: 37

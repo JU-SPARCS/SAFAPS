@@ -1,0 +1,320 @@
+#!/bin/bash
+
+test_file_folder="./test_json"
+curl="curl --silent -i"
+
+nb_test=0
+nb_fail=0
+
+#Style
+DEF="\e[0m"
+BOLD="\e[1m"
+RED="\e[31m"
+GREEN="\e[32m"
+BLUE="\e[34m"
+
+## Testing functions
+
+# Prints "OK" if the status code of the response 
+# matches with the expected status code, "KO" otherwise
+#   $1 The response containing the header
+#   $2 The expected status code
+function check_status_code {
+  nb_test=$((nb_test+1))
+  printf "\t\tTest status code = $2... " 
+  sc=$(echo "$1" | head -n 1 | cut -d$' ' -f2)
+  
+  if [[ "$sc" = "$2" ]]
+  then
+    printf "OK\n"
+  else
+    nb_fail=$((nb_fail+1))
+    printf "${RED}KO${DEF} (actual status code=$sc)\n"
+  fi
+}
+
+# Prints "OK" if the response contains the a specific field, 
+# "KO" otherwise
+#   $1 The response containing the header
+#   $2 The expected field
+function check_response_attr {
+  nb_test=$((nb_test+1))
+  printf "\t\tTest JSON field '$2'... " 
+  attr=$(echo "$1" | sed '1,/^\r\{0,1\}$/d' | jq "$2" 2> /dev/null)
+
+  if [[ "$attr" != "" ]] && [[ "$attr" != *"^null$"* ]]
+  then
+    printf "OK\n"
+  else
+    nb_fail=$((nb_fail+1))
+    printf "${RED}KO${DEF}\n"
+  fi
+}
+
+# Prints "OK" if the response contains the a specific field
+# with the specific value, 
+# "KO" otherwise
+#   $1 The response containing the header
+#   $2 The expected field
+#   $3 The expected value for this field
+function check_response_attr_value {
+  nb_test=$((nb_test+1))
+  printf "\t\tTest JSON value for field '$2'... " 
+  value=$(echo "$1" | sed '1,/^\r\{0,1\}$/d' | jq "$2" 2> /dev/null)
+
+  if [[ "$value" = "$3" ]]
+  then
+    printf "OK\n"
+  else
+    nb_fail=$((nb_fail+1))
+    printf "${RED}KO${DEF} (actual value='$value')\n"
+  fi
+}
+
+###################
+## Test /evaluations POST
+printf -- "------ Testing ${BOLD}${BLUE}http://193.10.30.123/evaluations POST${DEF} ------\n"
+printf "\tTesting Simple Evaluation\n"
+input=$(cat $test_file_folder/test_evaluation_ok | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic `cat $test_file_folder/test_manager_authkey`" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d "$input")
+
+check_status_code "$resp" 200
+check_response_attr "$resp" ".RequestId"
+check_response_attr_value "$resp" ".ResponseURL" '"http://toto.fr"'
+printf "\n"
+
+
+printf "\tTesting Evaluation without ReponseURL\n"
+input=$(cat $test_file_folder/test_evaluation_no_respURL | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic `cat $test_file_folder/test_manager_authkey`" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d "$input")
+
+check_status_code "$resp" 400
+check_response_attr_value "$resp" ".Error" '"The response URL is not properly set"'
+printf "\n"
+
+
+printf "\tTesting Evaluation with bad ReponseURL\n"
+input=$(cat $test_file_folder/test_evaluation_bad_respURL | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic `cat $test_file_folder/test_manager_authkey`" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d "$input")
+
+check_status_code "$resp" 400
+check_response_attr_value "$resp" ".Error" '"The response URL is not properly set"'
+printf "\n"
+
+
+printf "\tTesting Evaluation with missing field in Event\n"
+input=$(cat $test_file_folder/test_evaluation_missing_field | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic `cat $test_file_folder/test_manager_authkey`" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d "$input")
+
+check_status_code "$resp" 400
+check_response_attr_value "$resp" ".Error" '"One or several event attributes are missing in the event 0: "TimeZone", "StartTime", "EndTime""'
+printf "\n"
+
+
+printf "\tTesting Evaluation without authentication key\n"
+input=$(cat $test_file_folder/test_evaluation_ok | tr -d "\n")
+resp=$($curl -X POST -H "Content-Type: application/json" http://193.10.30.123/evaluations -d "$input")
+
+check_status_code "$resp" 401
+check_response_attr_value "$resp" ".Error" '"The authorization field is not specified or the API key is not valid"'
+printf "\n"
+
+
+printf "\tTesting Evaluation with bad authentication key\n"
+input=$(cat $test_file_folder/test_evaluation_ok | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic BadAuthKey" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d "$input")
+
+check_status_code "$resp" 401
+check_response_attr_value "$resp" ".Error" '"The authorization field is not specified or the API key is not valid"'
+printf "\n"
+
+
+printf "\tTesting Evaluation with bad body\n"
+input=$(cat $test_file_folder/test_evaluation_ok | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic `cat $test_file_folder/test_manager_authkey`" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d "BadJSON")
+
+check_status_code "$resp" 415
+check_response_attr_value "$resp" ".Error" '"The data is not in JSON format"'
+printf "\n"
+
+
+printf "\tTesting Evaluation with bad method\n"
+input=$(cat $test_file_folder/test_evaluation_ok | tr -d "\n")
+resp=$($curl -X GET -H "Authorization: Basic `cat $test_file_folder/test_manager_authkey`" -H "Content-Type: application/json" http://193.10.30.123/evaluations -d "$input")
+
+check_status_code "$resp" 405
+check_response_attr_value "$resp" ".Error" '"This action cannot be performed on this resource"'
+printf "\n"
+
+
+## Test /organizations/managers POST
+printf -- "------ Testing ${BOLD}${BLUE}http://193.10.30.123/organizations/managers POST${DEF} -----\n"
+printf "\tTesting Simple Add Manager\n"
+input=$(cat $test_file_folder/test_add_manager_ok | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic `cat $test_file_folder/test_organization_authkey`" -H "Content-Type: application/json" http://193.10.30.123/organizations/managers -d "$input")
+
+check_status_code "$resp" 200
+check_response_attr "$resp" ".ManagerId"
+check_response_attr_value "$resp" ".Name" '"Joe Cocker"'
+check_response_attr "$resp" ".ApiKey"
+printf "\n"
+
+
+printf "\tTesting Add Manager without Name\n"
+input=$(cat $test_file_folder/test_add_manager_no_name | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic `cat $test_file_folder/test_organization_authkey`" -H "Content-Type: application/json" http://193.10.30.123/organizations/managers -d "$input")
+
+check_status_code "$resp" 400
+check_response_attr_value "$resp" ".Error" '"The name is not properly set"'
+printf "\n"
+
+
+printf "\tTesting Add Manager with empty Name\n"
+input=$(cat $test_file_folder/test_add_manager_empty_name | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic `cat $test_file_folder/test_organization_authkey`" -H "Content-Type: application/json" http://193.10.30.123/organizations/managers -d "$input")
+
+check_status_code "$resp" 400
+check_response_attr_value "$resp" ".Error" '"The name is not properly set"'
+printf "\n"
+
+
+printf "\tTesting Add Manager without authentication key\n"
+input=$(cat $test_file_folder/test_add_manager_ok | tr -d "\n")
+resp=$($curl -X POST -H "Content-Type: application/json" http://193.10.30.123/organizations/managers -d "$input")
+
+check_status_code "$resp" 401
+check_response_attr_value "$resp" ".Error" '"The authorization field is not specified or the API key is not valid"'
+printf "\n"
+
+
+printf "\tTesting Add Manager with bad authentication key\n"
+input=$(cat $test_file_folder/test_add_manager_ok | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic BadAuthKey" -H "Content-Type: application/json" http://193.10.30.123/organizations/managers -d "$input")
+
+check_status_code "$resp" 401
+check_response_attr_value "$resp" ".Error" '"The authorization field is not specified or the API key is not valid"'
+printf "\n"
+
+
+printf "\tTesting Add Manager with bad body\n"
+input=$(cat $test_file_folder/test_add_manager_ok | tr -d "\n")
+resp=$($curl -X POST -H "Authorization: Basic `cat $test_file_folder/test_organization_authkey`" -H "Content-Type: application/json" http://193.10.30.123/organizations/managers -d "BadJSON")
+
+check_status_code "$resp" 415
+check_response_attr_value "$resp" ".Error" '"The data is not in JSON format"'
+printf "\n"
+
+
+printf "\tTesting Add Manager with bad method\n"
+input=$(cat $test_file_folder/test_add_manager_ok | tr -d "\n")
+resp=$($curl -X GET -H "Authorization: Basic `cat $test_file_folder/test_organization_authkey`" -H "Content-Type: application/json" http://193.10.30.123/organizations/managers -d "$input")
+
+check_status_code "$resp" 405
+check_response_attr_value "$resp" ".Error" '"This action cannot be performed on this resource"'
+printf "\n"
+
+
+
+## Test /organizations/managers/[id] DELETE
+printf -- "------ Testing ${BOLD}${BLUE}http://193.10.30.123/organizations/managers/[id] DELETE${DEF} -----\n"
+printf "\tTesting Simple Remove Manager\n"
+resp=$($curl -X DELETE -H "Authorization: Basic `cat $test_file_folder/test_organization_authkey`" http://193.10.30.123/organizations/managers/1)
+
+check_status_code "$resp" 204
+printf "\n"
+
+
+printf "\tTesting Remove Manager with bad manager ID\n"
+resp=$($curl -X DELETE -H "Authorization: Basic `cat $test_file_folder/test_organization_authkey`" http://193.10.30.123/organizations/managers/-1)
+
+check_status_code "$resp" 400
+check_response_attr_value "$resp" ".Error" '"The manager id is not valid"'
+printf "\n"
+
+
+
+printf "\tTesting Remove Manager without authentication key\n"
+resp=$($curl -X DELETE http://193.10.30.123/organizations/managers/1)
+
+check_status_code "$resp" 401
+check_response_attr_value "$resp" ".Error" '"The authorization field is not specified or the API key is not valid"'
+printf "\n"
+
+
+printf "\tTesting Remove Manager with bad authentication key\n"
+resp=$($curl -X DELETE -H "Authorization: Basic BadAuthKey" http://193.10.30.123/organizations/managers/1)
+
+check_status_code "$resp" 401
+check_response_attr_value "$resp" ".Error" '"The authorization field is not specified or the API key is not valid"'
+printf "\n"
+
+
+printf "\tTesting Remove Manager with bad method\n"
+resp=$($curl -X GET -H "Authorization: Basic `cat $test_file_folder/test_organization_authkey`" http://193.10.30.123/organizations/managers/1)
+
+check_status_code "$resp" 405
+check_response_attr_value "$resp" ".Error" '"This action cannot be performed on this resource"'
+printf "\n"
+
+
+## Test /organizations/[id]/invoices POST
+printf -- "------ Testing ${BOLD}${BLUE}http://193.10.30.123/organizations/[id]/invoices POST${DEF} -----\n"
+printf "\tTesting Simple Add Invoice\n"
+resp=$($curl -X POST http://193.10.30.123/organizations/1/invoices)
+
+check_status_code "$resp" 200
+check_response_attr "$resp" ".OrganizationName"
+check_response_attr "$resp" ".Invoice.Date"
+check_response_attr "$resp" ".Invoice.PeriodStart"
+check_response_attr "$resp" ".Invoice.PeriodEnd"
+check_response_attr "$resp" ".Invoice.Amount"
+check_response_attr "$resp" ".Invoice.Currency"
+printf "\n"
+
+
+printf "\tTesting Simple Add Invoice with bad organization ID\n"
+resp=$($curl -X POST http://193.10.30.123/organizations/-1/invoices)
+
+check_status_code "$resp" 400
+check_response_attr_value "$resp" ".Error" '"The organization id is not valid"'
+printf "\n"
+
+
+
+## Test /organizations/invoices GET
+printf -- "------ Testing ${BOLD}${BLUE}http://193.10.30.123/organizations/invoices GET${DEF} -----\n"
+printf "\tTesting Simple Get Invoices\n"
+resp=$($curl -X GET -H "Authorization: Basic `cat $test_file_folder/test_organization_authkey`" http://193.10.30.123/organizations/invoices)
+
+check_status_code "$resp" 200
+check_response_attr "$resp" ".OrganizationName"
+check_response_attr "$resp" ".Invoices[].Date"
+check_response_attr "$resp" ".Invoices[].PeriodStart"
+check_response_attr "$resp" ".Invoices[].PeriodEnd"
+check_response_attr "$resp" ".Invoices[].Amount"
+check_response_attr "$resp" ".Invoices[].Currency"
+printf "\n"
+
+
+printf "\tTesting Get Invoices without authentication key\n"
+resp=$($curl -X GET http://193.10.30.123/organizations/invoices)
+
+check_status_code "$resp" 401
+check_response_attr_value "$resp" ".Error" '"The authorization field is not specified or the API key is not valid"'
+printf "\n"
+
+printf "\tTesting Get Invoices with bad authentication key\n"
+resp=$($curl -X GET -H "Authorization: Basic BadAuthKey" http://193.10.30.123/organizations/invoices)
+
+check_status_code "$resp" 401
+check_response_attr_value "$resp" ".Error" '"The authorization field is not specified or the API key is not valid"'
+printf "\n"
+
+printf "\nTEST RESULT:\n\tTEST: ${nb_test}\n\tPASSED: $((nb_test-nb_fail))\n\tFAILED: ${nb_fail}"
+
+
+
+
+
+
+
