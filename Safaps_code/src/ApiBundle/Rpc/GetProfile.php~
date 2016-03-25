@@ -1,0 +1,17 @@
+<?php
+
+namespace ApiBundle\Server;
+
+use OldSound\RabbitMqBundle\RabbitMq\ConsumerInterface;
+use PhpAmqpLib\Message\AMQPMessage;
+
+class GetProfile implements ConsumerInterface {
+
+      public function execute(AMQPMessage $msg)
+        {
+        $isUploadSuccess = someUploadPictureMethod();
+	if (!$isUploadSuccess) {
+	   return false;
+	}
+    }
+}

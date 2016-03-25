@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec /var/www/safaps/app/console rabbitmq:consumer -m 1 upload_profile

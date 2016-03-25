@@ -1,0 +1,160 @@
+<?php
+namespace ApiBundle\Consumer;
+
+use OldSound\RabbitMqBundle\RabbitMq\ConsumerInterface;
+use PhpAmqpLib\Message\AMQPMessage;
+use Symfony\Component\HttpFoundation\Request;
+use DateTime;
+
+use ModelBundle\Entity\Result;
+
+class UploadProfileConsumer implements ConsumerInterface {
+
+    private $container;
+    private $em;
+    
+    public function __construct($container)
+    {
+        $this->container = $container;
+        $this->em = $this->container->get('doctrine')->getManager();
+    }
+    
+    public function execute(AMQPMessage $msg) {
+        if (!is_numeric($msg->body))
+	     	return;
+
+        $id = intval($msg->body);
+
+        
+//        echo nl2br ('id = '. $id . "\n");
+        
+        //TODO(Thomas): The lines below are correct, I tested them and they are following the right behavior BUT i failed on being able to get either services or the doctrine to make those lines work in this entity
+        
+        //Search in the database the events with the evaluation id corresponding to the one got from the queue
+//        $event_repository = $this->getDoctrine()->getRepository('ModelBundle:Event');
+        $event_repository = $this->em->getRepository('ModelBundle:Event');
+        $eventList = $event_repository->findBy(array('evaluation' => $id));
+
+//        echo sizeOf($eventList);
+
+        //Run the algorythm
+        $sfList = $this->container->get('safaps_algorithm')->run($eventList);
+//        echo $sfList['stress']; 
+//        echo $sfList['fatigue'];
+
+        //Send the assessment back to NARMS
+        // SEE ApiController.php
+
+//        echo $evaluation->getId();
+        
+//        $request = Request::createFromGlobals();
+//      http://193.10.30.126/api/safaps-profile
+//        $request->request->get('http://demo1559890.mockable.io/response', $evaluation->getId());
+//        $request = Request::create(
+//            $evaluation->getResponseURL(),
+//            'POST',
+//            array('responseId' => $evaluation->getId(), 'stress' => '5', 'fatigue' => '3')
+//        );
+
+//        $request = Request::create(
+//            'http://demo1559890.mockable.io/response',
+//            'POST',
+//            array('responseId' => $evaluation->getId(), 'stress' => '5', 'fatigue' => '3')
+//                    );
+
+        $algoResult = new Result();
+        $algoResult->setStress($sfList['stress']);
+        $algoResult->setFatigue($sfList['fatigue']);
+        $this->em->persist($algoResult);
+        $this->em->flush();
+
+        $eval_repo = $this->em->getRepository('ModelBundle:Evaluation');
+        $evaluation = $eval_repo->findOneBy(array('id' => $id));
+        $evaluation->setStatus('done');
+        $evaluation->setDateCompleted(new DateTime());
+        $evaluation->setResult($algoResult);
+        $this->em->persist($evaluation);
+        $this->em->flush();
+
+        
+        $url = $evaluation->getResponseURL();
+        $data = array('id_evaluation' => $evaluation->getId(), 'stress' => '5', 'fatigue' => '3');
+/*        echo $url;
+        // use key 'http' even if you send the request to https://...
+        $options = array(
+            'http' => array(
+                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method'  => 'POST',
+                'content' => http_build_query($data),
+            ),
+        );
+        $context  = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
+        if ($result === FALSE) { }
+
+        var_dump($result); */
+
+
+        // Corentin POST ->
+
+/*        $ch = curl_init();
+
+        //post options
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data_string));
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        
+        $response = curl_exec($ch); */
+
+        $data_string = json_encode($data);
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($data_string))
+        );
+
+        $response = curl_exec($ch);
+        
+        echo $response;
+        if (curl_errno($ch))
+            {
+                \Doctrine\Common\Util\Debug::dump(curl_error($ch));
+            }
+
+            curl_close($ch);
+
+        
+/*        $url = 'http://193.10.30.126/api/safaps/profile';
+        $fields = array(
+            'id_evaluation' => urlencode($_POST[$evaluation->getId()]),
+            'stress' => urlencode($_POST['5']),
+            'fatigue' => urlencode($_POST['3']),
+        );
+
+        //url-ify the data for the POST
+        foreach($fields as $key=>$value) { $fields_string .= $key.'='.$value.'&'; }
+        rtrim($fields_string, '&');
+
+        //open connection
+        $ch = curl_init();
+
+        //set the url, number of POST vars, POST data
+        curl_setopt($ch,CURLOPT_URL, $url);
+        curl_setopt($ch,CURLOPT_POST, count($fields));
+        curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
+
+        //execute post
+        $result = curl_exec($ch);
+
+        //close connection
+        curl_close($ch); */
+
+        return $msg->body;
+    }
+}

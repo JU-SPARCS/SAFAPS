@@ -1,0 +1,16 @@
+<?php
+
+namespace ApiBundle\Producer;
+
+use OldSound\RabbitMqBundle\DependencyInjection\OldSoundRabbitMqExtension;
+use OldSound\RabbitMqBundle\DependencyInjection\Compiler\RegisterPartsPass;
+use OldSound\RabbitMqBundle\RabbitMq\Producer
+
+class SafapsProducer extends Producer {
+
+      public function send_in_queue($msg){
+      	     //$this->get('old_sound_rabbit_mq.upload_profile_producer')->publish(serialize($msg));
+      	     
+      }
+
+}

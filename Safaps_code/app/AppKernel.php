@@ -19,6 +19,8 @@ class AppKernel extends Kernel
             new AppBundle\AppBundle(),
             new ModelBundle\ModelBundle(),
             new ApiBundle\ApiBundle(),
+	    new OldSound\RabbitMqBundle\OldSoundRabbitMqBundle(),
+	    new Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle(),
         );
 
             // Problem: exception caught in Body Listener with : new FOS\RestBundle\FOSRestBundle(),

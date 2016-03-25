@@ -42,6 +42,16 @@ class Organization
      */
     private $invoiceMail;
 
+    /**
+     * @ORM\OneToMany(targetEntity="ModelBundle\Entity\Manager", mappedBy="organization", cascade={"all"})
+     **/
+    private $managers;
+
+    /**
+     * @ORM\OneToMany(targetEntity="ModelBundle\Entity\Invoice", mappedBy="organization", cascade={"all"})
+     **/
+    private $invoices;
+
 
     /**
      * Get id
@@ -120,5 +130,78 @@ class Organization
     public function getInvoiceMail()
     {
         return $this->invoiceMail;
+    }
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->managers = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    /**
+     * Add managers
+     *
+     * @param \ModelBundle\Entity\Manager $managers
+     * @return Organization
+     */
+    public function addManager(\ModelBundle\Entity\Manager $managers)
+    {
+        $this->managers[] = $managers;
+
+        return $this;
+    }
+
+    /**
+     * Remove managers
+     *
+     * @param \ModelBundle\Entity\Manager $managers
+     */
+    public function removeManager(\ModelBundle\Entity\Manager $managers)
+    {
+        $this->managers->removeElement($managers);
+    }
+
+    /**
+     * Get managers
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getManagers()
+    {
+        return $this->managers;
+    }
+
+    /**
+     * Add invoices
+     *
+     * @param \ModelBundle\Entity\Invoice $invoices
+     * @return Organization
+     */
+    public function addInvoice(\ModelBundle\Entity\Invoice $invoices)
+    {
+        $this->invoices[] = $invoices;
+
+        return $this;
+    }
+
+    /**
+     * Remove invoices
+     *
+     * @param \ModelBundle\Entity\Invoice $invoices
+     */
+    public function removeInvoice(\ModelBundle\Entity\Invoice $invoices)
+    {
+        $this->invoices->removeElement($invoices);
+    }
+
+    /**
+     * Get invoices
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getInvoices()
+    {
+        return $this->invoices;
     }
 }

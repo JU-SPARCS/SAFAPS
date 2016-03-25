@@ -1,0 +1,29 @@
+# Learn more about services, parameters and containers at
+# http://symfony.com/doc/current/book/service_container.html
+#parameters:
+#    app.producer.param: "@old_sound_rabbit_mq.upload_service_producer"
+
+#imports:
+#    - { resource: '@ApiBundle/Resources/config/services.yml' }
+
+services:
+    upload_profile_service:
+        class:        ApiBundle\Consumer\UploadProfileConsumer
+    get_profile:
+        class:        ApiBundle\Server\GetProfile
+    safaps_algorithm:
+        class:        ApiBundle\Algorithm
+    api_controller:
+        class:        ApiBundle\Controller\ApiController
+#    app.producer:
+#        class:       ApiBundle\Producer\SafapsProducer
+#        arguments:   ['%app.producer.param']
+#             - @old_sound_rabbit_mq.upload_service_producer
+#
+#    old_sound_rabbit_mq.upload_profile_producer:
+#        class:        RabbitMqBundle\RabbitMq\Producer
+
+
+#    service_name:
+#        class: AppBundle\Directory\ClassName
+#        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]

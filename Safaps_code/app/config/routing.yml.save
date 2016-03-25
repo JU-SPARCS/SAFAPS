@@ -1,0 +1,23 @@
+api:
+    resource: "@ApiBundle/Resources/config/routing.yml"
+    prefix:   /
+
+model:
+    resource: "@ModelBundle/Resources/config/routing.yml"
+    prefix:   /
+
+organization_list:
+    path:    /organizations/list
+    defaults: { _controller: AppBundle:Invoice:showOrganizationList }
+    methods: [GET]
+
+organization_invoice_list:
+    path:    /organizations/{orgId}/invoices/list
+    defaults: { _controller: AppBundle:Invoice:showOrganizationInvoiceList }
+    methods: [GET]
+
+organization_
+
+app:
+    resource: "@AppBundle/Controller/"
+    type:     annotation

@@ -60,6 +60,8 @@ doctrine:
         user:     "%database_user%"
         password: "%database_password%"
         charset:  UTF8
+        mapping_types:
+            enum: string
         # if using pdo_sqlite as your database driver:
         #   1. add the path in parameters.yml
         #     e.g. database_path: "%kernel.root_dir%/data/data.db3"
@@ -79,3 +81,45 @@ swiftmailer:
     username:  "%mailer_user%"
     password:  "%mailer_password%"
     spool:     { type: memory }
+
+# RabbitMQ
+old_sound_rabbit_mq:
+    connections:
+        default:
+            host:     '193.10.30.123'
+            port:     5672
+            user:     'toto'
+            password: 'toto'
+            vhost:    '/'
+            lazy:     false
+            connection_timeout: 3
+            read_write_timeout: 3
+
+            # requires php-amqplib v2.4.1+ and PHP5.4+
+            keepalive: false
+
+            # requires php-amqplib v2.4.1+
+            heartbeat: 0
+    producers:
+        upload_profile:
+            connection:       default
+            exchange_options: {name: 'upload-profile', type: direct}
+    consumers:
+        upload_profile:
+            connection:       default
+            exchange_options: {name: 'upload-profile', type: direct}
+            queue_options:    {name: 'upload-profile'}
+            callback:         upload_profile_service
+            idle_timeout:     1
+    rpc_clients:
+        client:
+            connection: default
+            unserializer: json_decode
+    rpc_servers:
+        rabbitMqServer:
+            connection: default
+            callback:   upload_profile_service
+            qos_options: {prefetch_size: 0, prefetch_count: 1, global: false}
+            exchange_options: {name: rabbitMqServer, type: topic}
+            queue_options: {name: upload-profile durable: false, auto_delete: true}
+            serializer: json_encode

@@ -6,6 +6,21 @@ model:
     resource: "@ModelBundle/Resources/config/routing.yml"
     prefix:   /
 
+organization_list:
+    path:    /organizations/list
+    defaults: { _controller: AppBundle:Invoice:showOrganizationList }
+    methods: [GET]
+
+organization_invoice_list:
+    path:    /organizations/{orgId}/invoices/list
+    defaults: { _controller: AppBundle:Invoice:showOrganizationInvoices }
+    methods: [GET]
+
+organization_invoice_generate:
+    path:   /organizations/{orgId}/invoices/generate
+    defaults: { _controller: AppBundle:Invoice:generateOrganizationInvoices }
+    methods: [POST]
+
 app:
     resource: "@AppBundle/Controller/"
     type:     annotation
